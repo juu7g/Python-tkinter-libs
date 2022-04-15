@@ -31,6 +31,12 @@ Tkinter向けライブラリ `en` Library for Tkinter
 ### コンストラクタ Constructor
 `ScrolledFrome(master, *args, has_h_bar=False, **kwargs)`  
 
+### プロパティ property
+- `parent_frame`：ラップしているフレームオブジェクト  
+	wrapped frame object
+- `parent_canvas`：ラップしているキャンバスオブジェクト  
+	wrapped canvas object
+
 ## TkinterLibクラス TkinterLib class
 
 ### メソッド Method

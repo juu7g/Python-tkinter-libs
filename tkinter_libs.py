@@ -81,23 +81,27 @@ class ScrolledFrame(tk.Frame):
 			bool(has_h_bar):    水平スクロールバー(True:表示、False:非表示)
             その他:             Frameクラスに準拠
         """
+        # 親としてFrameを作成 notebookにaddするために用意
+        # このFrameにCanvas,Scrollbarを設置
+        self.parent_frame = tk.Frame(master, background="darkgray")
+        # self.parent_frame.pack(fill=tk.BOTH, expand=True)
         # 親としてcanvasを作成
-        self.parent_canvas = tk.Canvas(master)
+        self.parent_canvas = tk.Canvas(self.parent_frame, background="lightgray")
         super().__init__(self.parent_canvas, *args, **kwargs)
         # 水平スクロールバー作成(option)
         if has_h_bar:
-            hsb1 = tk.Scrollbar(master, orient=tk.HORIZONTAL, command=self.parent_canvas.xview)
+            hsb1 = tk.Scrollbar(self.parent_frame, orient=tk.HORIZONTAL, command=self.parent_canvas.xview)
             self.parent_canvas.configure(xscrollcommand=hsb1.set)
             hsb1.pack(side="bottom", fill="x")
         # 垂直スクロールバー作成
-        vsb1 = tk.Scrollbar(master, orient=tk.VERTICAL, command=self.parent_canvas.yview)
+        vsb1 = tk.Scrollbar(self.parent_frame, orient=tk.VERTICAL, command=self.parent_canvas.yview)
         self.parent_canvas.config(yscrollcommand=vsb1.set)
         vsb1.pack(side="right", fill="y")
         self.parent_canvas.pack(side="left", fill="both", expand=True)
         # キャンバスにフレームを割り当て 0,0はanchor位置なのでnwを指定
         self.frame_id = self.parent_canvas.create_window(0, 0, anchor="nw", window=self)
         # bind
-        self.bind_all("<MouseWheel>", self.on_frame_mouse_wheel)
+        self.bind_all("<MouseWheel>", self.on_frame_mouse_wheel, add=True)
         self.bind("<Configure>", self.on_frame_configure)
         # self.parent_canvas.bind("<Configure>", self.on_canvas_configure)  # スクロールバーと相性が悪い
 
@@ -127,9 +131,16 @@ class ScrolledFrame(tk.Frame):
     def on_frame_mouse_wheel(self, event=None):
         """
         Canvasをmouse wheelで垂直scrollさせる
+        ScrolledFrmeオブジェクトが複数ある場合に備えて子供のイベントかどうか検査する
         """
         if event:
-            # print(event.widget)   # for debug
+            # print(f"mouse wheel event:{event.widget}")   # for debug
+            # イベントが発生したウィジェットがselfの子供かどうか検査する
+            widget_ = event.widget
+            while not (widget_ is self.parent_canvas):
+                if isinstance(widget_.master, tk.Tk): return # 親がTk()ならそれ以上親はないので抜ける
+                widget_ = widget_.master
+            # scroll
             self.parent_canvas.yview_scroll(int(-1 * (event.delta / abs(event.delta))), "units")
 
 if __name__ == '__main__':
